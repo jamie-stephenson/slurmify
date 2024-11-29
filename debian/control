@@ -1,0 +1,17 @@
+Source: slurmify
+Section: admin
+Priority: optional
+Maintainer: Jamie Stephenson <jamie.t.stephenson@gmail.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+Standards-Version: 4.6.2
+
+Package: slurmify
+Architecture: any
+Multi-Arch: foreign
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+Description: Tool for creating a simple slurm cluster. 
+ Use this tool to automatically mount a shared file system and then install and configure slurm on all nodes of a given cluster.

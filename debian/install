@@ -1,0 +1,5 @@
+src/etc/slurmify/slurm/* etc/slurmify/slurm
+src/etc/slurmify/* etc/slurmify
+src/usr/bin/* usr/bin
+src/usr/share/slurmify/mounts/* usr/share/slurmify/mounts
+src/usr/share/slurmify/* usr/share/slurmify
