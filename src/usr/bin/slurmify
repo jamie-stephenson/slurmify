@@ -1,6 +1,6 @@
 #!/bin/bash
 
-env_script="$1"
+env_script="${1:-/dev/null}"
 
 #--CONFIGURE VARIABLES--
 config_file=/etc/slurmify/slurmify.conf
@@ -131,9 +131,7 @@ run_on_node() {
         ssh -i ~/.ssh/${key[name]} $USER@$node "bash -s -- $filesystem" < $mount_script > $output_file 2>&1
         ssh -i ~/.ssh/${key[name]} $USER@$node "bash -s -- ${args[@]@Q}" < $worker_script > $output_file 2>&1
     else        
-        #--------ENV----------
         source $env_script ${filesystem[mount]}
-        #---------------------
     fi
 }
 
