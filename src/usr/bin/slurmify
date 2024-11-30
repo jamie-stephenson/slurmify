@@ -30,7 +30,7 @@ done < $config_file
 #---------------------
 
 #-----MOUNT DRIVE----- TODO: support more fs types
-mount_script=/usr/share/mounts/${filesystem[type]}.sh 
+mount_script=/usr/share/slurmify/mounts/${filesystem[type]}.sh 
 source $mount_script $filesystem
 #---------------------
 
