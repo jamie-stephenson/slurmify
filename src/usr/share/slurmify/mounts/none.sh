@@ -2,5 +2,5 @@
 
 fs="$1"
 
-sudo apt-get update
+apt-get update
 echo Filesystem type "none" given. Assuimg that filesystem is alread mounted at ${fs[mount]}.

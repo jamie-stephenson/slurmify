@@ -53,11 +53,11 @@ for node in "${nodes[@]}"; do
     fi        
 done
 
-sudo sed -i "s/NodeName= NodeAddr= CPUs= Gres= State=UNKNOWN/$slurm_nodes/" ${slurm_conf_path}slurm.conf
-sudo sed -i s/ClusterName=/ClusterName=${cluster[name]}/ ${slurm_conf_path}slurm.conf 
+sed -i "s/NodeName= NodeAddr= CPUs= Gres= State=UNKNOWN/$slurm_nodes/" ${slurm_conf_path}slurm.conf
+sed -i s/ClusterName=/ClusterName=${cluster[name]}/ ${slurm_conf_path}slurm.conf 
 
 master_addr="${node00[addr]}"
-sudo sed -i "s/SlurmctldHost=/SlurmctldHost=node00($master_addr)/" ${slurm_conf_path}slurm.conf
+sed -i "s/SlurmctldHost=/SlurmctldHost=node00($master_addr)/" ${slurm_conf_path}slurm.conf
 
 # Configure workers partition (if enough nodes present).
 # Note: this relies on strict naming pattern: node00 node01 node02 ...
@@ -70,53 +70,53 @@ if ((last_index>0)); then
     fi
     echo "PartitionName=workers Nodes=$worker_nodes Default=YES MaxTime=INFINITE State=UP" >> ${slurm_conf_path}slurm.conf
 else 
-    sudo sed -i "s/Default=NO/Default=YES/" ${slurm_conf_path}slurm.conf
+    sed -i "s/Default=NO/Default=YES/" ${slurm_conf_path}slurm.conf
 fi
 
-sudo sed -i "s@NodeName= Name=gpu File=/dev/nvidia0@$gres_nodes@" ${slurm_conf_path}gres.conf
+sed -i "s@NodeName= Name=gpu File=/dev/nvidia0@$gres_nodes@" ${slurm_conf_path}gres.conf
 echo ${filesystem[mount]}* >> ${slurm_conf_path}cgroup_allowed_devices_file.conf
 #---------------------
 
 #---UPDATE HOSTNAME--- 
-sudo hostname node00  
-sudo sed -i 2d /etc/hosts
+hostname node00  
+sed -i 2d /etc/hosts
 hosts=""
 for node in "${nodes[@]}"; do
     name="${node}[name]"
     addr="${node}[addr]"
     hosts+="${!addr} ${!name}\n"
 done
-sudo sed -i "2i $hosts" /etc/hosts 
-sudo sed -i 's/.*/node00/' /etc/hostname
-sudo sed -i 's/^preserve_hostname: false$/preserve_hostname: true/' /etc/cloud/cloud.cfg
+sed -i "2i $hosts" /etc/hosts 
+sed -i 's/.*/node00/' /etc/hostname
+sed -i 's/^preserve_hostname: false$/preserve_hostname: true/' /etc/cloud/cloud.cfg
 #---------------------
 
 #------NTPDATE--------
-sudo NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install ntpdate -y
+NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install ntpdate -y
 #---------------------
 
 #-------SLURM---------
-sudo NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install slurm-wlm -y
-sudo mkdir -p ${filesystem[mount]}/slurm/
-sudo cp -r "${slurm_conf_path}"* /etc/slurm/
-sudo cp -r "${slurm_conf_path}"* ${filesystem[mount]}/slurm/
-sudo cp /etc/munge/munge.key ${filesystem[mount]}
-sudo systemctl enable munge
-sudo systemctl start munge
-sudo systemctl enable slurmd
-sudo systemctl start slurmd
-sudo systemctl enable slurmctld
-sudo systemctl start slurmctld
+NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install slurm-wlm -y
+mkdir -p ${filesystem[mount]}/slurm/
+cp -r "${slurm_conf_path}"* /etc/slurm/
+cp -r "${slurm_conf_path}"* ${filesystem[mount]}/slurm/
+cp /etc/munge/munge.key ${filesystem[mount]}
+systemctl enable munge
+systemctl start munge
+systemctl enable slurmd
+systemctl start slurmd
+systemctl enable slurmctld
+systemctl start slurmctld
 #---------------------
 
 #----GNU PARALLEL-----
-sudo apt-get -o DPkg::Lock::Timeout=60 -y install parallel
+apt-get -o DPkg::Lock::Timeout=60 -y install parallel
 #---------------------
 
 #--BUILD WORKERS--
 touch ~/.ssh/known_hosts
 chmod 600 ~/.ssh/known_hosts
-sudo mkdir -p /var/log/slurmify/
+mkdir -p /var/log/slurmify/
 
 run_on_node() {
     local node=$1
