@@ -6,25 +6,25 @@ mount_dir="$3"
 env_script="$4"
 
 #---UPDATE HOSTNAME--- 
-sudo hostname $node  
-sudo sed -i 2d /etc/hosts
-sudo sed -i "2i $hosts" /etc/hosts 
-sudo sed -i "s/.*/$node/" /etc/hostname
-sudo sed -i 's/^preserve_hostname: false$/preserve_hostname: true/' /etc/cloud/cloud.cfg
+hostname $node  
+sed -i 2d /etc/hosts
+sed -i "2i $hosts" /etc/hosts 
+sed -i "s/.*/$node/" /etc/hostname
+sed -i 's/^preserve_hostname: false$/preserve_hostname: true/' /etc/cloud/cloud.cfg
 #---------------------
 
 #------NTPDATE--------
-sudo NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install ntpdate -y
+NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install ntpdate -y
 #---------------------
 
 #-------SLURM---------
-sudo NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install slurmd slurm-client -y
-sudo cp $mount_dir/munge.key /etc/munge/munge.key
-sudo cp -r $mount_dir/slurm/* /etc/slurm/
-sudo systemctl enable munge
-sudo systemctl start munge
-sudo systemctl enable slurmd
-sudo systemctl start slurmd
+NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install slurmd slurm-client -y
+cp $mount_dir/munge.key /etc/munge/munge.key
+cp -r $mount_dir/slurm/* /etc/slurm/
+systemctl enable munge
+systemctl start munge
+systemctl enable slurmd
+systemctl start slurmd
 #---------------------
 
 #--------ENV----------
