@@ -1,10 +1,7 @@
-# Use Ubuntu as the base image
 FROM ubuntu:20.04
 
-# Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update and install required packages, including Git, systemd, and Debian development tools
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git \
@@ -15,6 +12,8 @@ RUN apt-get update && \
     debhelper \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+ADD ./* /home/ubuntu/slurmify/
 
 # Enable systemd in the container
 STOPSIGNAL SIGRTMIN+3
