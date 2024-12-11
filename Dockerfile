@@ -5,15 +5,18 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git \
+    vim \
     systemd \
     apt-utils \
     build-essential \
     devscripts \
     debhelper \
+    openssh-server \
+    openssh-client \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ADD ./* /home/ubuntu/slurmify/
+COPY . /home/ubuntu/slurmify/
 
 # Enable systemd in the container
 STOPSIGNAL SIGRTMIN+3
