@@ -1,9 +1,7 @@
 #!/bin/bash
 
-fs="$1"
-
-mount=${fs[mount]}
-addr=${fs[addr]}
+mount=$1
+addr=$2
 
 #-----MOUNT DRIVE-----
 apt-get update

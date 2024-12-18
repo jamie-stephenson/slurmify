@@ -30,8 +30,12 @@ done < $config_file
 #---------------------
 
 #-----MOUNT DRIVE----- TODO: support more fs types
-mount_script=/usr/share/slurmify/mounts/${filesystem[type]}.sh 
-source $mount_script $filesystem
+mount_script=/usr/share/slurmify/mounts/${filesystem[type]}.sh
+mount_args="${filesystem[mount]} \
+${filesystem[addr]} \
+${filesystem[usr]} \
+${filesystem[pwd]}"
+source $mount_script $mount_args
 #---------------------
 
 #-EDIT SLURM CONFIGS--
@@ -128,6 +132,9 @@ apt-get -o DPkg::Lock::Timeout=60 -y install parallel
 #---------------------
 
 #--BUILD WORKERS--
+if [ ! -d "~/.ssh" ]; then
+    mkdir ~/.ssh
+fi
 touch ~/.ssh/known_hosts
 chmod 600 ~/.ssh/known_hosts
 mkdir -p /var/log/slurmify/
@@ -142,7 +149,7 @@ run_on_node() {
         if ! ssh-keygen -F $node; then
             ssh-keyscan -t ed25519 -H $node >> ~/.ssh/known_hosts
         fi
-        ssh -i ~/.ssh/${key[name]} $USER@$node "bash -s -- $filesystem" < $mount_script > $output_file 2>&1
+        ssh -i ~/.ssh/${key[name]} $USER@$node "bash -s -- $mount_args" < $mount_script > $output_file 2>&1
         ssh -i ~/.ssh/${key[name]} $USER@$node "bash -s -- ${args[@]@Q}" < $worker_script > $output_file 2>&1
     else        
         source $env_script ${filesystem[mount]}
