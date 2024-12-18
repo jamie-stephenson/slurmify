@@ -1,6 +1,6 @@
 #!/bin/bash
 
-fs="$1"
+mount="$1"
 
 apt-get update
-echo Filesystem type "none" given. Assuimg that filesystem is alread mounted at ${fs[mount]}.
+echo Filesystem type \"none\" given. Assuming that filesystem is already mounted at $mount.
