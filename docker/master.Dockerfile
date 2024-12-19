@@ -16,9 +16,6 @@ RUN apt-get update && \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY . /home/ubuntu/slurmify/
+COPY .. /home/ubuntu/slurmify/
 
-# Enable systemd in the container
-STOPSIGNAL SIGRTMIN+3
-CMD ["/lib/systemd/systemd"]
-
+EXPOSE 22
