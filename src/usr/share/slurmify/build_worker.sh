@@ -7,9 +7,19 @@ env_script="$4"
 
 #---UPDATE HOSTNAME--- 
 hostname $node  
-sed -i 2d /etc/hosts
-sed -i "2i $hosts" /etc/hosts 
-sed -i "s/.*/$node/" /etc/hostname
+mkdir /tmp/slurmify
+temp_hosts=$(mktemp /tmp/slurmify/hosts.new.XXXXXX)
+temp_hostname=$(mktemp /tmp/slurmify/hostname.new.XXXXXX)
+
+cp /etc/hosts $temp_hosts
+sed -i 2d $temp_hosts
+sed -i "2i $hosts" $temp_hosts
+cp -f $temp_hosts /etc/hosts
+
+cp /etc/hostname $temp_hostname
+sed -i 's/.*/node00/' $temp_hostname
+cp -f $temp_hostname /etc/hostname
+
 sed -i 's/^preserve_hostname: false$/preserve_hostname: true/' /etc/cloud/cloud.cfg
 #---------------------
 
@@ -21,10 +31,8 @@ NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install ntpdate -y
 NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install slurmd slurm-client -y
 cp $mount_dir/munge.key /etc/munge/munge.key
 cp -r $mount_dir/slurm/* /etc/slurm/
-systemctl enable munge
-systemctl start munge
-systemctl enable slurmd
-systemctl start slurmd
+service munge start
+service slurmd start
 #---------------------
 
 #--------ENV----------

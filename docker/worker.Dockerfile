@@ -11,6 +11,11 @@ RUN apt-get update && \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Docker containers max sys uid is 999 but slurm defaults to a larger one
+RUN groupadd -r slurm && useradd -r -g slurm -u 999 slurm
+
 RUN sed -i 's/#PermitRootLogin/PermitRootLogin/' /etc/ssh/sshd_config
 
-EXPOSE 22
+#   22: SSH
+# 6818: Slurm D
+EXPOSE 22 6818

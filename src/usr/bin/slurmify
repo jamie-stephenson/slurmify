@@ -1,42 +1,71 @@
 #!/bin/bash
 
-env_script="${1:-/dev/null}"
 
 #--CONFIGURE VARIABLES--
-config_file=/etc/slurmify/slurmify.conf
+env_script="${1:-/dev/null}"
 slurm_conf_path=/etc/slurmify/slurm/
 worker_script=/usr/share/slurmify/build_worker.sh
+mkdir -p /var/log/slurmify/
+log_file=/var/log/slurmify/node00.log
 
+config_file=/etc/slurmify/slurmify.conf
 if [ ! -f "$config_file" ]; then
     echo "Error: $config_file not found."
     exit 1
 fi
 
+# Use 3 and 4 to refer to terminal stdout and stderr
+exec 3>&1 4>&2
+# Redirect default output to log file
+exec >> $log_file 2>&1
+
 # Parse config file
 nodes=()
+current_section=""
 while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ $line =~ ^"["(.+)"]"$ ]]; then 
-        arrname=${BASH_REMATCH[1]}
-        declare -A $arrname
+    # 1) Skip empty lines or lines starting with '#' (comments)
+    if [[ -z "$line" || $line =~ ^[[:space:]]*# ]]; then
+        continue
+    fi
 
-        if [[ $arrname =~ ^node[0-9]+$ ]]; then
-            nodes+=("$arrname")
+    # 2) Detect section headers: [something]
+    if [[ $line =~ ^\[(.+)\]$ ]]; then
+        current_section=${BASH_REMATCH[1]}
+
+        # If this section name starts with "node", we will create an associative array for it
+        if [[ $current_section =~ ^node[0-9]+$ ]]; then
+            nodes+=( "$current_section" )
+            declare -gA "$current_section"
         fi
 
-    elif [[ $line =~ ^([_[:alpha:]][_[:alnum:]]*)"="(.*) ]]; then 
-        declare ${arrname}[${BASH_REMATCH[1]}]="${BASH_REMATCH[2]}"
+    # 3) Detect key-value pairs: key=value
+    elif [[ $line =~ ^([_[:alpha:]][_[:alnum:]]*)=(.*)$ ]]; then
+        var_name=${BASH_REMATCH[1]}
+        var_value=${BASH_REMATCH[2]}
+
+        if [[ $current_section =~ ^node[0-9]+$ ]]; then
+            declare ${current_section}[$var_name]="${var_value}"
+
+        else
+            new_var="${current_section}_${var_name}"
+            declare -g "${new_var}=${var_value}"
+        fi
     fi
-done < $config_file
+
+done < "$config_file"
 #---------------------
 
 #-----MOUNT DRIVE----- TODO: support more fs types
-mount_script=/usr/share/slurmify/mounts/${filesystem[type]}.sh
-mount_args="${filesystem[mount]} \
-${filesystem[addr]} \
-${filesystem[usr]} \
-${filesystem[pwd]}"
+echo Mounting shared filesystem... >&3
+mount_script=/usr/share/slurmify/mounts/$filesystem_type.sh
+mount_args="$filesystem_mount \
+$filesystem_addr \
+$filesystem_usr \
+$filesystem_pwd"
 source $mount_script $mount_args
 #---------------------
+
+echo Configuring master node... >&3
 
 #-EDIT SLURM CONFIGS--
 slurm_nodes=""
@@ -58,7 +87,7 @@ for node in "${nodes[@]}"; do
 done
 
 sed -i "s/NodeName= NodeAddr= CPUs= Gres= State=UNKNOWN/$slurm_nodes/" ${slurm_conf_path}slurm.conf
-sed -i s/ClusterName=/ClusterName=${cluster[name]}/ ${slurm_conf_path}slurm.conf 
+sed -i s/ClusterName=/ClusterName=${cluster_name}/ ${slurm_conf_path}slurm.conf 
 
 master_addr="${node00[addr]}"
 sed -i "s/SlurmctldHost=/SlurmctldHost=node00($master_addr)/" ${slurm_conf_path}slurm.conf
@@ -78,7 +107,7 @@ else
 fi
 
 sed -i "s@NodeName= Name=gpu File=/dev/nvidia0@$gres_nodes@" ${slurm_conf_path}gres.conf
-echo ${filesystem[mount]}* >> ${slurm_conf_path}cgroup_allowed_devices_file.conf
+echo ${filesystem_mount}* >> ${slurm_conf_path}cgroup_allowed_devices_file.conf
 #---------------------
 
 #---UPDATE HOSTNAME--- 
@@ -115,16 +144,13 @@ NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install ntpdate -y
 
 #-------SLURM---------
 NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install slurm-wlm -y
-mkdir -p ${filesystem[mount]}/slurm/
+mkdir -p $filesystem_mount/slurm/
 cp -r "${slurm_conf_path}"* /etc/slurm/
-cp -r "${slurm_conf_path}"* ${filesystem[mount]}/slurm/
-cp /etc/munge/munge.key ${filesystem[mount]}
-systemctl enable munge
-systemctl start munge
-systemctl enable slurmd
-systemctl start slurmd
-systemctl enable slurmctld
-systemctl start slurmctld
+cp -r "${slurm_conf_path}"* $filesystem_mount/slurm/
+cp /etc/munge/munge.key $filesystem_mount
+service munge start
+service slurmd start
+service slurmctld start
 #---------------------
 
 #----GNU PARALLEL-----
@@ -132,34 +158,31 @@ apt-get -o DPkg::Lock::Timeout=60 -y install parallel
 #---------------------
 
 #--BUILD WORKERS--
-if [ ! -d "~/.ssh" ]; then
-    mkdir ~/.ssh
-fi
 touch ~/.ssh/known_hosts
 chmod 600 ~/.ssh/known_hosts
-mkdir -p /var/log/slurmify/
 
 run_on_node() {
     local node=$1
-    local args=( $node "$hosts" ${filesystem[mount]} $env_script )
+    local args=( $node "$hosts" $filesystem_mount $env_script )
 
-    output_file=/var/log/slurmify/$node.log
+    log_file=/var/log/slurmify/$node.log
 
     if ! [ $node = 'node00' ]; then
         if ! ssh-keygen -F $node; then
             ssh-keyscan -t ed25519 -H $node >> ~/.ssh/known_hosts
         fi
-        ssh -i ~/.ssh/${key[name]} $USER@$node "bash -s -- $mount_args" < $mount_script > $output_file 2>&1
-        ssh -i ~/.ssh/${key[name]} $USER@$node "bash -s -- ${args[@]@Q}" < $worker_script > $output_file 2>&1
+        ssh -i ~/.ssh/$key_name $node "bash -s -- $mount_args" < $mount_script > $log_file 2>&1
+        ssh -i ~/.ssh/$key_name $node "bash -s -- ${args[@]@Q}" < $worker_script >> $log_file 2>&1
     else        
-        source $env_script ${filesystem[mount]}
+        source $env_script $filesystem_mount
     fi
 }
 
 # Export the function and vars to make them available to parallel
 export -f run_on_node
-export worker_script hosts filesystem mount_script mount_args env_script key
+export worker_script hosts filesystem_mount mount_script mount_args env_script key_name
 
 # Run worker_script in parallel on all nodes
+echo Configuring worker nodes... >&3
 parallel -j 0 run_on_node {} ::: "${nodes[@]}"
 #---------------------
