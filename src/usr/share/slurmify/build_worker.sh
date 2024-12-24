@@ -3,7 +3,6 @@
 node="$1"
 hosts="$2"
 mount_dir="$3"
-env_script="$4"
 
 #---UPDATE HOSTNAME--- 
 hostname $node  
@@ -33,8 +32,4 @@ cp $mount_dir/munge.key /etc/munge/munge.key
 cp -r $mount_dir/slurm/* /etc/slurm/
 service munge start
 service slurmd start
-#---------------------
-
-#--------ENV----------
-source $env_script $mount_dir
 #---------------------
