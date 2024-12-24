@@ -171,8 +171,8 @@ run_on_node() {
         if ! ssh-keygen -F $node; then
             ssh-keyscan -t ed25519 -H $node >> ~/.ssh/known_hosts
         fi
-        ssh -i ~/.ssh/$key_name $node "bash -s -- $mount_args" < $mount_script > $log_file 2>&1
-        ssh -i ~/.ssh/$key_name $node "bash -s -- ${args[@]@Q}" < $worker_script >> $log_file 2>&1
+        ssh -i ~/.ssh/$key_name $key_user@$node "sudo bash -s -- $mount_args" < $mount_script > $log_file 2>&1
+        ssh -i ~/.ssh/$key_name $key_user@$node "sudo bash -s -- ${args[@]@Q}" < $worker_script >> $log_file 2>&1
     else        
         source $env_script $filesystem_mount
     fi
@@ -180,7 +180,7 @@ run_on_node() {
 
 # Export the function and vars to make them available to parallel
 export -f run_on_node
-export worker_script hosts filesystem_mount mount_script mount_args env_script key_name
+export worker_script hosts filesystem_mount mount_script mount_args env_script key_name key_user
 
 # Run worker_script in parallel on all nodes
 echo Configuring worker nodes... >&3
