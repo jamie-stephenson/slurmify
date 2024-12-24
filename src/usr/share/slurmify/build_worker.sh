@@ -3,7 +3,6 @@
 node="$1"
 hosts="$2"
 mount_dir="$3"
-env_script="$4"
 
 #---UPDATE HOSTNAME--- 
 hostname $node  
@@ -25,8 +24,4 @@ systemctl enable munge
 systemctl start munge
 systemctl enable slurmd
 systemctl start slurmd
-#---------------------
-
-#--------ENV----------
-source $env_script $mount_dir
 #---------------------
