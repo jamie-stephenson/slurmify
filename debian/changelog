@@ -1,5 +1,5 @@
-slurmify (1.0-1) UNRELEASED; urgency=medium
+slurmify (0.1.0-1~pre1) unstable; urgency=medium
 
-  * Initial release. (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * Test prerelease
 
- -- unknown <jamie@unknown>  Fri, 29 Nov 2024 15:14:06 +0000
+ -- Jamie Stephenson <jamie.t.stephenson@gmail.com>  Tue, 24 Dec 2024 12:35:56 +0000
