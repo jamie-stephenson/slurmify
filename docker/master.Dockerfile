@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git \
     vim \
-    systemd \
+    sudo \
     apt-utils \
     build-essential \
     devscripts \

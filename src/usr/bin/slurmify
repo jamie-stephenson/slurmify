@@ -173,9 +173,9 @@ run_on_node() {
         fi
         ssh -i ~/.ssh/$key_name $key_user@$node "sudo bash -s -- $mount_args" < $mount_script > $log_file 2>&1
         ssh -i ~/.ssh/$key_name $key_user@$node "sudo bash -s -- ${args[@]@Q}" < $worker_script >> $log_file 2>&1
-        ssh -i ~/.ssh/$key_name $key_user@$node "sudo bash -s -- $filesystem_mount" < $env_script >> $log_file 2>&1
+        ssh -i ~/.ssh/$key_name $key_user@$node "bash -s -- $filesystem_mount" < $env_script >> $log_file 2>&1
     else        
-        source $env_script $filesystem_mount
+        su - $key_user -c "source $PWD/$env_script $filesystem_mount"
     fi
 }
 
