@@ -30,6 +30,8 @@ NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install ntpdate -y
 NEEDRESTART_MODE=l apt-get -o DPkg::Lock::Timeout=60 install slurmd slurm-client -y
 cp $mount_dir/munge.key /etc/munge/munge.key
 cp -r $mount_dir/slurm/* /etc/slurm/
-service munge start
-service slurmd start
+systemctl enable munge
+systemctl start munge
+systemctl enable slurmd
+systemctl start slurmd
 #---------------------

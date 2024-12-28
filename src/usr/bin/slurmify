@@ -150,9 +150,12 @@ mkdir -p $filesystem_mount/slurm/
 cp -r "${slurm_conf_path}"* /etc/slurm/
 cp -r "${slurm_conf_path}"* $filesystem_mount/slurm/
 cp /etc/munge/munge.key $filesystem_mount
-service munge start
-service slurmd start
-service slurmctld start
+systemctl enable munge
+systemctl start munge
+systemctl enable slurmd
+systemctl start slurmd
+systemctl enable slurmctld
+systemctl start slurmctld
 #---------------------
 
 #----GNU PARALLEL-----
