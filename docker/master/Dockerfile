@@ -23,6 +23,11 @@ RUN echo "ubuntu ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu
 
 COPY . /home/ubuntu/slurmify/
 
+RUN cd /home/ubuntu/slurmify && \
+    debuild -us -uc && \
+    cd .. && \
+    dpkg -i slurmify_0.1.0_amd64.deb
+    
 #   22: SSH
 # 6817: Slurm Ctl D
 # 6818: Slurm D
