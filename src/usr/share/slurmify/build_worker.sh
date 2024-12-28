@@ -16,7 +16,7 @@ sed -i "2i $hosts" $temp_hosts
 cp -f $temp_hosts /etc/hosts
 
 cp /etc/hostname $temp_hostname
-sed -i 's/.*/node00/' $temp_hostname
+sed -i "s/.*/$node/" $temp_hostname
 cp -f $temp_hostname /etc/hostname
 
 sed -i 's/^preserve_hostname: false$/preserve_hostname: true/' /etc/cloud/cloud.cfg
