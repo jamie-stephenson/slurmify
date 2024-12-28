@@ -2,7 +2,9 @@
 
 
 #--CONFIGURE VARIABLES--
-env_script="${1:-/dev/null}"
+env_script="${1:+$PWD/$1}" # Absolute path or empty string 
+env_script="${env_script:-/dev/null}" # Absolute path or "do nothing"
+
 slurm_conf_path=/etc/slurmify/slurm/
 worker_script=/usr/share/slurmify/build_worker.sh
 mkdir -p /var/log/slurmify/
@@ -175,7 +177,7 @@ run_on_node() {
         ssh -i ~/.ssh/$key_name $key_user@$node "sudo bash -s -- ${args[@]@Q}" < $worker_script >> $log_file 2>&1
         ssh -i ~/.ssh/$key_name $key_user@$node "bash -s -- $filesystem_mount" < $env_script >> $log_file 2>&1
     else        
-        su - $key_user -c "source $PWD/$env_script $filesystem_mount"
+        su - $key_user -c "source $env_script $filesystem_mount"
     fi
 }
 
