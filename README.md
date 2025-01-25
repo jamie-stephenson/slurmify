@@ -52,7 +52,7 @@ The main configuration file is located at `/etc/slurmify/slurmify.conf`. It incl
 
 1. Parses `/etc/slurmify/slurmify.conf` to read the cluster configuration.
 2. Mounts a shared filesystem (if configured).
-3. Installs Slurm and creates the correct configuration files (e.g., slurm.conf, gres.conf) in /etc/slurmify/slurm/ to reflect your cluster setup.
+3. Installs Slurm and creates the correct configuration files (e.g. slurm.conf, gres.conf) in /etc/slurmify/slurm/ to reflect your cluster setup.
 4. Activates the `slurmctld` and `slurmd` daemons. Note: it does not set up Slurm accounting.
 5. Configures worker nodes in parallel (using [GNU Parallel](https://www.gnu.org/software/parallel/)):
 6. Runs any supplied script (e.g. environment-setup scripts) across all nodes.
